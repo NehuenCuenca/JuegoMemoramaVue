@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="icono.jpg">
+    <link rel="stylesheet" type="text/css" href="MemoramaEstilos.css">
+    <title>Juego memorama🤓</title>
+</head>
+<body>
+    <h1 class="titulo" title="">MEMORAMA</h1>
+    <div id="app">
+        
+        <!-- <tablero class="tablero"></tablero> -->
+    </div>
+</body>
+
+<script src="/vue.js" defer=""></script>
+<script src="/EjercicioMemorama.js" defer=""></script>
+
+<script type="text/x-template" id="carta-template" defer="">
+    <div class="carta-NoRevelada" :class="infoCarta.revelada ? 'carta-Revelada' : 'carta-NoRevelada'"
+        @click="revelar">
+        <span>
+            {{ valor }}
+        </span>
+    </div>
+</script>
+
+<script type="text/x-template" id="tablero-template" defer="">
+    <div>
+        <p class="pTutorial" v-if="!inicio">Este juego consiste en adivinar todos los pares de numeros que hay en el tablero de cartas. Tené cuidado porque solo dispones de  12 intentos sino, ripiaste maquinola. ¡Clickeá una carta para empezar a jugar!</p>
+
+        <div class="infoRecord">
+            <p>❌Intentos {{ contIntentos }} | ⏱Tiempo {{ segundosCifras }} seg.</p>
+        </div>
+        
+        <div @contextmenu.prevent class="tablero" 
+                v-if="!perdio && !gano">
+            <carta
+             v-for="(carta, index) in cartas"
+             :key="index"
+             :infoCarta="carta"
+             :style="'grid-row: ' + carta.fila + '; grid-column:' + carta.columna + ';'"
+             @onRevelar="revelarCarta"
+            >
+            </carta>
+        </div>
+
+        <div v-if="perdio == true" class="cartel perdedor">
+            <p>🥶💀¡PERDISTE!💀🥶</p>
+            <p>USASTE MUCHOS TURNOS.</p>
+            <p>TU TIEMPO FUE DE: {{ auxSegundos }} segundos.</p>
+            <button @click="cargarTablero()" class="botonRecargar">Jugar otra vez</button>
+        </div>
+
+        <div class="cartel ganador" v-if="gano == true">
+            <p>😎🤑¡GANASTE!🤑😎</p>
+            <p>TU TIEMPO FUE DE: {{ auxSegundos }} segundos.</p>
+            <p>¿JUGÁS OTRA VEZ?</p>
+            <button @click="cargarTablero()" class="botonRecargar">Recargar juego</button>
+        </div>
+    </div>
+</script>
+    
+</html>
