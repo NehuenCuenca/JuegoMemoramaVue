@@ -30,20 +30,19 @@
 
 <script type="text/x-template" id="tablero-template" defer="">
     <div>
-        <p class="pTutorial" v-if="!inicio">Este juego consiste en adivinar todos los pares de numeros que hay en el tablero de cartas. Tené cuidado porque solo dispones de  12 intentos sino, ripiaste maquinola. ¡Clickeá una carta para empezar a jugar!</p>
+        <p class="pTutorial" v-if="!inicio">Este juego consiste en descubrir todos los pares de numeros que hay dispersos en el tablero de cartas. Tené cuidado porque solo tenes 12 intentos sino, ripiaste maquinola. ¡Clickeá una carta para empezar a jugar!</p>
 
         <div class="infoRecord">
             <p>❌Intentos {{ contIntentos }} | ⏱Tiempo {{ segundosCifras }} seg.</p>
         </div>
         
-        <div @contextmenu.prevent class="tablero" 
-                v-if="!perdio && !gano">
+        <div @contextmenu.prevent class="tablero" v-if="!perdio && !gano">
             <carta
-             v-for="(carta, index) in cartas"
-             :key="index"
-             :infoCarta="carta"
-             :style="'grid-row: ' + carta.fila + '; grid-column:' + carta.columna + ';'"
-             @onRevelar="revelarCarta"
+                v-for="(carta, index) in cartas"
+                :key="index"
+                :infoCarta="carta"
+                :style="'grid-row: ' + carta.fila + '; grid-column:' + carta.columna + ';'"
+                @onRevelar="revelarCarta"
             >
             </carta>
         </div>
