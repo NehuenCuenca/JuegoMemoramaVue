@@ -7,6 +7,7 @@ const carta = {
         revelar(){
             this.$emit('onRevelar', this.infoCarta)
         },
+
     },
 
     computed: {
@@ -41,20 +42,21 @@ const vm = new Vue({
 
             //Filas y columnas del tablero
             filas: 4,
-            columnas: 4,
+            columnas: 6,
 
-            //!!AVISO!!: Si usted esta manipulando el num de filas y columnas, verificar que la multiplicacion de estas dos variables, de como resultado un numero PAR, por ejemplo el array de la linea de abajo:  
+            //!!AVISO!!: Si usted esta manipulando el num de filas y columnas, 
+            //verificar que la multiplicacion de estas dos variables, de como resultado un numero PAR, 
+            //por ejemplo el array de la linea de abajo:  
             // EJEMPLO arrayValores: [1,2,3,4,5,5,4,3,2,1]
             
-            //Contador de clicks (+1 si revela una carta)
-            contClicks: 0,
+            //const del limite de intentos que tiene el jugador
+            limiteIntentos: 16,
+
             //Contador de intentos (+1 si revelo 2 cartas)
             contIntentos: 0,
 
             //Array de los valores que seran presentados en las cartas
             arrValores: [],
-            //Array de 2 valores clickeados
-            arrValoresClickeados: [],
 
             cronometro: null,
             segundosIntento: 0,
@@ -67,48 +69,41 @@ const vm = new Vue({
             //condicion de si el jugador ganó
             gano:false,
 
+            //vars nuevas
+            cartaAux: null,
         }
     },
 
     methods: {
-
         //Metodo para crear un array de valores de un tamaño dinamico a las filas y columnas
         crearArrayValores(cantCartas){
             this.arrValores = [];
             let totalCartas= cantCartas;
             let mitadTotalCartas = (totalCartas/2);
-            //Recorro la cantidad total de cartas
-            for(let k=1; k < totalCartas; k++){
-                //Guardo el indice para usarlo como valor despues
-                let valor= k;
-                //Pregunto si el indice que guarde es mayor a la mitad del total de cartas, 
-                if(valor > (mitadTotalCartas)){
-                    //Guardo como valor el total de cartas menos la posicion actual
-                    valor = (totalCartas) - valor; 
-                }
+            //Recorro la mitad de las cartas
+            for(let k=1; k < mitadTotalCartas+1; k++){
                 //Agrego el indice al array de valores
-                this.arrValores.push(String(valor));
+                this.arrValores.push(String(k));
             }
-            //Devuelvo el array
+            //Duplico los valores y guardo
+            this.arrValores= this.arrValores.concat(this.arrValores)
+
             return this.arrValores
         },
 
         //Metodo que desordena el array de valores 
-        desordenarArrValores(){
-            let filas = this.filas;
-            let columnas = this.columnas;
-            let totalCartas= Number(filas*columnas);
-            //creo el array de valores 
-            let arrayValores= this.crearArrayValores(totalCartas+1);
+        desordenarArrValores(array){
             //Desordeno el array 
-            let arrayDesordenado= arrayValores.sort(function(a,b){
+            let arrayDesordenado= array.sort(function(a,b){
                 return String(Math.random() - 0.5);
             });
+            
             return arrayDesordenado
         },
 
         cargarTablero() {
-            this.auxSegundos=null;
+            this.segundosIntento= 0;
+            this.auxSegundos= 0;
             this.cronometro= null, 
             this.pararCronometro();
             this.inicio= false;
@@ -116,159 +111,117 @@ const vm = new Vue({
             this.gano= false;
             this.cartas = [];
             this.contIntentos = 0;
-            this.contClicks = 0;
+            this.cartaAux = null
 
             let filas = this.filas;
             let columnas = this.columnas;
             let totalCartas= Number(filas*columnas);
-
-            console.log("RECORDATORIO, podes sumar/restar las cartas a traves del codigo, cambiando el num de  filas y columnas...")
-            console.log(`Array de valores creado..: [${this.crearArrayValores(totalCartas+1)}]`);
+            let arrCartas = this.crearArrayValores(totalCartas)
 
             //Desordeno el array de valores
-            let valoresDesordenados= this.desordenarArrValores();
-            console.log(`Array de valores desordenado..: [${valoresDesordenados}]`);
+            let valoresDesordenados= this.desordenarArrValores(arrCartas);
 
             //Creo las cartas
             for(let i=0; i < totalCartas; i++){
-                //guardo el valor del primer elemento eliminado del array desordenado de valores
+                //guardo el primer elemento eliminadolo del array desordenado de valores
                 let valorRandom= String(valoresDesordenados.shift());    
                 let carta = {
                     valor: valorRandom,
                     revelada: false,
                     fila: Math.floor(i / columnas) + 1,
                     columna: (i % columnas) + 1,
-    
                 }
                 //Agrego la carta al array de cartas
                 this.cartas.push(carta);
             } 
             console.log("Cartas creadas..")
-
-            /* for(let i=0; i < totalCartas; i++){
-                if(){
-
-                }
-            } */
-            
         },  
 
-        //Metodo para contar los intentos (1 intento = 2 cartas reveladas que no son iguales)
-        contarIntentos(contClicks){
-            if(contClicks % 2 == 0){
-                this.contIntentos++;
-                console.log("Intentos: "+ this.contIntentos);
-            }
-        },
-
         //Metodo para mostrar el valor de la carta clickeada (dar vuelta una carta)
-        revelarCarta(carta){
-            if(!this.inicio){
-                this.cronometro = setInterval(() => {
-                    this.segundosIntento++;
-                }, 1000);
-            }
-            this.inicio=true;
+        revelarCarta(cartaActual){
+            this.mostrarCarta(cartaActual)
 
-            if(!carta.revelada){  
-                carta.revelada= true;
-                this.contClicks++;
-                this.guardarValores(carta);
-                if(this.contClicks % 2 == 0){
-                    //this.arrValoresClickeados
-                    let intento= this.compararValores();
-                    if(!intento){
-                        this.contarIntentos(this.contClicks);
-                    }
-                }
-            }
-            
-        },
-
-        //Metodo que guarda en un array 2 valores clickeados
-        guardarValores(carta){
-            let valor = carta.valor;
-            this.arrValoresClickeados.push(valor);
-        },
-
-        //Metodo que compara las 2 cartas que fueron clickeadas
-        compararValores(){
-            console.log("Valores clickeados: "+ this.arrValoresClickeados)
-            if(this.arrValoresClickeados[0] == this.arrValoresClickeados[1]){
-                this.arrValoresClickeados= [];
-                console.log("Intento acertado");
-                this.verificacionGano();
-                return true
+            if(this.cartaAux === null){
+                this.cartaAux = cartaActual
             } else {
-                setTimeout(() => this.taparCartas(), 400); 
-                console.log("Intento fallido");
-                return false
-            }
+                if(!this.inicio){
+                    this.cronometro = setInterval(() => {
+                        this.segundosIntento++;
+                    }, 1000);
+                }
+                this.inicio = true;
+
+                if(this.cartaAux === cartaActual) {
+                    return;
+                }
+                
+                if(cartaActual.valor !== this.cartaAux.valor){
+                    //Aumento intentos +1
+                    this.contIntentos++;
+                    //Tapo el par de cartas seleccionadas
+                    let cartaAux= this.cartaAux
+                    setTimeout(() => this.taparCarta(cartaAux), 400);
+                    setTimeout(() => this.taparCarta(cartaActual), 400);
+                }
+
+                if(!this.verificacionPerdio()){
+                    this.verificacionGano()
+                }
+
+                this.cartaAux = null
+            }    
         },
 
-        //metodo para tapar aquellas cartas que fueron clickeadas y no coincidian (intento fallido)
-        taparCartas(){
-            let filas = this.filas;
-            let columnas = this.columnas;
-            let totalCartas= Number(filas*columnas); 
-            let valores= this.arrValoresClickeados;
+        mostrarCarta(carta){
+            carta.revelada = true
+        },
 
-            for(let i=0; i < totalCartas; i++){
-                if((this.cartas[i].valor == valores[0]) || (this.cartas[i].valor == valores[1])){
-                    this.cartas[i].revelada= false
-                } else {
-                    this.cartas[i].revelada
-                }
-            } 
-
-            this.arrValoresClickeados= [];
-            this.verificacionPerdio()
-        },   
+        //metodo para tapar una carta
+        taparCarta(carta){
+            carta.revelada= false
+        },
         
-        //Meto para detener el cronometro
+        //Metodo para detener el cronometro
         pararCronometro(){
             clearInterval(this.cronometro);
+            this.auxSegundos= this.segundosIntento;
+            this.cronometro=null;
         }, 
         
-        //Metodo que verifica si el jugador supero un maximo de 12 intentos.
+        //Metodo que verifica si el jugador supero un maximo de intentos.
         verificacionPerdio(){
-            if(this.contIntentos == 12){
-                this.auxSegundos= this.segundosIntento;
+            if(this.contIntentos == this.limiteIntentos){
                 this.pararCronometro()
-                this.segundosIntento=0;
-                this.cronometro=null;
                 this.gano=false;
                 this.perdio= true;
                 this.inicio= false;
-                return
+                return true
+            } else {
+                return false
             }
         },
 
         //Metodo que cuenta todas las cartas reveladas y las compara con el total existente de cartas. Esta funcion se ejecuta cuando se verifica un intento.
         verificacionGano(){
-            let filas = this.filas;
-            let columnas = this.columnas;
-            let totalCartas= Number(filas*columnas);
             let arrCartasAux = this.cartas.filter(carta => carta.revelada == true)
-            console.log("Cantidad cartas reveladas: "+ arrCartasAux.length)
+            //console.log("Cantidad cartas reveladas: "+ arrCartasAux.length)
 
-            if(arrCartasAux.length == totalCartas){
-                this.auxSegundos= this.segundosIntento;
+            if(arrCartasAux.length == this.cartas.length){
                 this.pararCronometro();
-                this.segundosIntento=0;
-                this.cronometro=null;
                 this.perdio=false;
                 this.gano= true; 
                 this.inicio= false;
+                return true
+            } else {
+                return false
             }
-            return
         }
 
     },
 
     computed:{
         segundosCifras(){
-            let cifras = this.segundosIntento.toString();
+            let cifras = this.segundosIntento.toString() ;
             
             if(cifras.length == 1){
                 cifras = '00' + cifras;
