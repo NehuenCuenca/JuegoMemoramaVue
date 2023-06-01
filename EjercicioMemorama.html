@@ -44,9 +44,8 @@
                 v-for="(carta, index) in cartas"
                 :key="index"
                 :infoCarta="carta"
-                :style="'grid-row: ' + carta.fila + '; grid-column:' + carta.columna + ';'"
                 @onRevelar="revelarCarta"
-            >
+                >
             </carta>
         </div>
 
